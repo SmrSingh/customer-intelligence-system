@@ -5,6 +5,12 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 import shap
+
+import mlflow
+import mlflow.sklearn
+
+from sklearn.model_selection import GridSearchCV
+
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -23,6 +29,9 @@ print(X_test.shape)
 
 print(y_train.shape)
 print(y_test.shape)
+
+
+
 log_model = LogisticRegression()
 log_model.fit(X_train, y_train)
 y_pred_log = log_model.predict(X_test)
@@ -153,3 +162,49 @@ shap_values = explainer.shap_values(X_test)
 
 print("SHAP values generated successfully!")
 print(shap_values[:5])
+
+param_grid = {
+    "C": [0.01, 0.1, 1, 10],
+    "solver": ["liblinear", "lbfgs"]
+}
+grid_search = GridSearchCV(
+    LogisticRegression(),
+    param_grid,
+    cv=5,
+    scoring="roc_auc",
+    n_jobs=-1
+)
+
+with mlflow.start_run():
+
+    grid_search.fit(X_train, y_train)
+
+    print("Best Parameters:")
+    print(grid_search.best_params_)
+
+    print("Best ROC-AUC Score:")
+    print(grid_search.best_score_)
+
+    best_model = grid_search.best_estimator_
+
+    mlflow.log_param(
+        "best_C",
+        grid_search.best_params_["C"]
+    )
+
+    mlflow.log_param(
+        "best_solver",
+        grid_search.best_params_["solver"]
+    )
+
+    mlflow.log_metric(
+        "best_roc_auc",
+        grid_search.best_score_
+    )
+
+    mlflow.sklearn.log_model(
+        best_model,
+        "logistic_regression_model"
+    )
+
+    print("MLflow experiment logged successfully!")
