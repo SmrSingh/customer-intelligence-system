@@ -1,9 +1,10 @@
 import pandas as pd
-
+import joblib
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-
+import matplotlib.pyplot as plt
+import shap
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -58,3 +59,97 @@ print(confusion_matrix(y_test, y_pred_rf))
 rf_roc = roc_auc_score(y_test, y_pred_rf)
 
 print("Random Forest ROC-AUC:", rf_roc)
+
+xgb_model = XGBClassifier(
+    eval_metric="logloss",
+    random_state=42
+)
+
+xgb_model.fit(X_train, y_train)
+y_pred_xgb = xgb_model.predict(X_test)
+
+xgb_accuracy = accuracy_score(y_test, y_pred_xgb)
+
+print("XGBoost Accuracy:", xgb_accuracy)
+
+print(classification_report(y_test, y_pred_xgb))
+
+print(confusion_matrix(y_test, y_pred_xgb))
+
+xgb_roc = roc_auc_score(y_test, y_pred_xgb)
+
+print("XGBoost ROC-AUC:", xgb_roc)
+
+print("\nMODEL COMPARISON")
+
+print(f"Logistic Regression Accuracy: {accuracy:.4f}")
+print(f"Random Forest Accuracy: {rf_accuracy:.4f}")
+print(f"XGBoost Accuracy: {xgb_accuracy:.4f}")
+
+print()
+
+print(f"Logistic Regression ROC-AUC: {roc_score:.4f}")
+print(f"Random Forest ROC-AUC: {rf_roc:.4f}")
+print(f"XGBoost ROC-AUC: {xgb_roc:.4f}")
+
+joblib.dump(
+    log_model,
+    "models/logistic_regression_model.pkl"
+)
+
+print("Best model saved successfully!")
+
+feature_importance = pd.DataFrame({
+    "Feature": X_train.columns,
+    "Importance": abs(log_model.coef_[0])
+})
+
+feature_importance = feature_importance.sort_values(
+    by="Importance",
+    ascending=False
+)
+
+print(feature_importance.head(10))
+
+top_features = feature_importance.head(10)
+
+plt.figure(figsize=(10,6))
+
+plt.barh(
+    top_features["Feature"],
+    top_features["Importance"]
+)
+
+plt.xlabel("Importance")
+plt.ylabel("Feature")
+
+plt.title("Top Features Influencing Customer Churn")
+
+plt.gca().invert_yaxis()
+
+plt.show()
+
+'''explainer = shap.LinearExplainer(
+    log_model,
+    X_train
+)
+
+shap_values = explainer.shap_values(X_test)
+
+shap.summary_plot(
+    shap_values,
+    X_test,
+    show=False
+)
+
+plt.show()'''
+
+explainer = shap.LinearExplainer(
+    log_model,
+    X_train
+)
+
+shap_values = explainer.shap_values(X_test)
+
+print("SHAP values generated successfully!")
+print(shap_values[:5])
