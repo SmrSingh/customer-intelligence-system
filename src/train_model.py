@@ -208,3 +208,13 @@ with mlflow.start_run():
     )
 
     print("MLflow experiment logged successfully!")
+
+    joblib.dump(
+    X_train.columns.tolist(),
+    "models/model_columns.pkl"
+)
+
+print("Model columns saved!")
+
+
+
