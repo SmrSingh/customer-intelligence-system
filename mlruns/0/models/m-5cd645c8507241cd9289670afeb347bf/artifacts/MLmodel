@@ -1,0 +1,23 @@
+artifact_path: file:C:/Users/User/OneDrive/Desktop/customer-intelligence-system/mlruns/0/models/m-5cd645c8507241cd9289670afeb347bf/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.14.2
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+mlflow_version: 3.12.0
+model_id: m-5cd645c8507241cd9289670afeb347bf
+model_size_bytes: 4709
+model_uuid: m-5cd645c8507241cd9289670afeb347bf
+prompts: null
+run_id: 76ed813277fe411c9b1bc6598e84dcdc
+utc_time_created: '2026-05-14 11:26:00.697325'

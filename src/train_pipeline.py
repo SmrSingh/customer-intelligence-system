@@ -1,6 +1,7 @@
 import pandas as pd
 import joblib
-
+import mlflow
+import mlflow.sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -23,6 +24,10 @@ df = pd.read_csv(
     "data/raw/telco_churn.csv"
 )
 
+df["TotalCharges"] = pd.to_numeric(
+    df["TotalCharges"],
+    errors="coerce"
+)
 df.drop("customerID", axis=1, inplace=True)
 
 df["TotalCharges"] = pd.to_numeric(
@@ -84,65 +89,9 @@ categorical_transformer = Pipeline(
     ]
 )
 
-numeric_transformer = Pipeline(
-    steps=[
-        (
-            "imputer",
-            SimpleImputer(strategy="median")
-        ),
-        (
-            "scaler",
-            StandardScaler()
-        )
-    ]
-)
 
-categorical_transformer = Pipeline(
-    steps=[
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="most_frequent"
-            )
-        ),
-        (
-            "onehot",
-            OneHotEncoder(
-                handle_unknown="ignore"
-            )
-        )
-    ]
-)
 
-numeric_transformer = Pipeline(
-    steps=[
-        (
-            "imputer",
-            SimpleImputer(strategy="median")
-        ),
-        (
-            "scaler",
-            StandardScaler()
-        )
-    ]
-)
 
-categorical_transformer = Pipeline(
-    steps=[
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="most_frequent"
-            )
-        ),
-        (
-            "onehot",
-            OneHotEncoder(
-                handle_unknown="ignore"
-            )
-        )
-    ]
-)
 preprocessor = ColumnTransformer(
     transformers=[
         (
@@ -172,37 +121,59 @@ model_pipeline = Pipeline(
         )
     ]
 )
+with mlflow.start_run():
+    mlflow.log_param(
+    "model",
+    "LogisticRegression"
+    )
 
-model_pipeline.fit(
-    X_train,
-    y_train
-)
+    mlflow.log_param(
+    "max_iter",
+    1000
+    )
 
-y_pred = model_pipeline.predict(X_test)
+    mlflow.log_param(
+    "test_size",
+    0.2
+    )
+    model_pipeline.fit(
+        X_train,
+        y_train
+    )
 
-y_prob = model_pipeline.predict_proba(
-    X_test
-)[:, 1]
+    y_pred = model_pipeline.predict(X_test)
+    y_prob = model_pipeline.predict_proba(
+        X_test
+    )[:, 1]
+    accuracy = accuracy_score(
+        y_test,
+        y_pred
+    )
 
-accuracy = accuracy_score(
-    y_test,
-    y_pred
-)
-
-roc_auc = roc_auc_score(
-    y_test,
-    y_prob
-)
-
-print("Accuracy:", accuracy)
-
-print("ROC-AUC:", roc_auc)
-
-joblib.dump(
+    roc_auc = roc_auc_score(
+        y_test,
+        y_prob
+    )
+    joblib.dump(
     model_pipeline,
     "models/churn_pipeline.pkl"
-)
+    )
 
-print(
+    print(
     "Pipeline saved successfully!"
-)
+    )
+
+    mlflow.log_metric(
+        "accuracy",
+        accuracy
+    )
+
+    mlflow.log_metric(
+        "roc_auc",
+        roc_auc
+    )
+
+    mlflow.sklearn.log_model(
+        model_pipeline,
+        "churn_model"
+    )

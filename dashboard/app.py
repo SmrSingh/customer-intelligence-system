@@ -179,36 +179,37 @@ if st.button("Predict Churn"):
 
 if prediction == 1:
 
-    st.error(
+      st.error(
         f"Customer likely to churn ({probability*100:.1f}%)"
-    )
+      )
 
-    st.progress(float(probability))
+      st.progress(float(probability))
+      st.warning("Suggested Retention Actions")
+
+      if contract == "Month-to-month":
+        st.write("- Offer yearly discount plan")
+
+      if tech_support == "No":
+        st.write("- Provide free tech support")
+
+      if online_security == "No":
+        st.write("- Offer security add-on")
+
+      if monthly_charges > 80:
+        st.write("- Recommend lower-cost plan")
 
 else:
 
-    st.success(
+      st.success(
         f"Customer likely to stay ({(1 - probability)*100:.1f}%)"
-    )
+      )
 
-    st.progress(float(1 - probability))
+      st.progress(float(1 - probability))
 
 
-if prediction == 1:
+    
 
-    st.warning("Suggested Retention Actions")
-
-    if contract == "Month-to-month":
-        st.write("- Offer yearly discount plan")
-
-    if tech_support == "No":
-        st.write("- Provide free tech support")
-
-    if online_security == "No":
-        st.write("- Offer security add-on")
-
-    if monthly_charges > 80:
-        st.write("- Recommend lower-cost plan")
+      
 
 fig = go.Figure(
     go.Indicator(
