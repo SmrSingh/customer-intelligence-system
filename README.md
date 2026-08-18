@@ -6,9 +6,7 @@ An end-to-end Machine Learning web application that predicts customer churn usin
 
 https://customer-churn-app-ouzr.onrender.com
 
-## GitHub Repository
 
-https://github.com/SmrSingh/customer-intelligence-system
 
 ---
 
